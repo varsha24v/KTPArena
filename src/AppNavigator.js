@@ -1,10 +1,12 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
-import HomeScreen from "../screens/HomeScreen";
-import ChallengesScreen from "../screens/ChallengesScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+import HomeScreen from "./HomeScreen";
+import ChallengesScreen from "./ChallengesScreen";
+import ProfileScreen from "./ProfileScreen";
 import { Ionicons } from "@expo/vector-icons";
+import CreateChallengeScreen from "./CreateChallengeScreen";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -26,6 +28,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Challenges" component={ChallengesScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Create" component={CreateChallengeScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );
