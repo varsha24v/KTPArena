@@ -1,24 +1,45 @@
 import React, { useRef, useContext } from "react";
 import { View, Text, Button, StyleSheet, FlatList } from "react-native";
 import WheelOfFortune from "react-native-wheel-of-fortune";
-import { ChallengeContext } from "./ChallengeContext"; // ✅ use context
-
+import { ChallengeContext } from "./ChallengeContext"; 
+import * as ImagePicker from "expo-image-picker";
+import {Image} from "react-native";
 const knob = require('../assets/images/knob.png');
 
 export default function ChallengesScreen() {
   const wheelRef = useRef(null);
-  const { challenges } = useContext(ChallengeContext); // ✅ grab stored challenges
+  const { challenges, currentUser, updateChallenge } = useContext(ChallengeContext);
+  const myChallenges = challenges.filter((ch)=>ch.assignedTo===currentUser.name);
 
   const spinnerChallenges = ["Push-ups 💪", "Sing a song 🎤", "Dance battle 💃", "Tell a joke 🤡"];
+
+  const handleCompleteChallenge = async (challenge) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Image,
+      allowsEditing: true,
+      quality: 0.5,
+    });
+  
+    if (!result.canceled) {
+      const updated = {
+        ...challenge,
+        completed: true,
+        proofImage: result.assets[0].uri,
+      };
+  
+      updateChallenge(updated);
+    }
+  };
+  
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Spin the Wheel of Challenges 🎡</Text>
 
-      <WheelOfFortune
+      {/* <WheelOfFortune
         options={{
           rewards: spinnerChallenges,
-          knobSource: knob,
+          knobSource: null,
           knobSize: 20,
           borderWidth: 3,
           innerRadius: 20,
@@ -27,28 +48,44 @@ export default function ChallengesScreen() {
           getWinner: (value) => alert(`Challenge: ${value}`),
           onRef: (ref) => (wheelRef.current = ref),
         }}
-      />
+      /> */}
+
+      <Text style={styles.sectionTitle}>Current Challenges for {currentUser.name}:</Text>
+
+      {myChallenges.length === 0 ? (
+        <Text>No challenges assigned yet.</Text>
+      ) : (
+      myChallenges.map((ch, idx) => (
+        <View key={idx} style={styles.challengeItem}>
+          <Text>{ch.title}</Text>
+          <Text>{ch.points} pts</Text>
+
+          {ch.completed ? (
+            <>
+              <Text style={{ color: "green" }}>Completed</Text>
+              {ch.proofImage && (
+                <Image
+                  source={{ uri: ch.proofImage }}
+                  style={{ width: 100, height: 100, marginTop: 10 }}
+                />
+              )}
+            </>
+          ) : (
+            <Button
+              title="Mark as Completed"
+              onPress={() => handleCompleteChallenge(ch)}
+            />
+          )}
+        </View>
+      ))
+    )}
+
+
 
       <Button title="Spin the Wheel" onPress={() => wheelRef.current._onPress()} />
 
       
-      <View style={styles.challengeList}>
-        <Text style={styles.subheading}>Current Challenges</Text>
-        {challenges.length === 0 ? (
-          <Text style={styles.empty}>No challenges assigned yet.</Text>
-        ) : (
-          <FlatList
-            data={challenges}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.challengeItem}>
-                <Text style={styles.challengeText}>{item.title}</Text>
-                <Text style={styles.pointText}>{item.points} pts</Text>
-              </View>
-            )}
-          />
-        )}
-      </View>
+      
     </View>
   );
 }
@@ -69,4 +106,20 @@ const styles = StyleSheet.create({
   },
   challengeText: { fontSize: 16 },
   pointText: { fontWeight: "bold", color: "#3498db" },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 30,
+    marginBottom: 10,
+  },
+  challengeItem: {
+    padding: 10,
+    backgroundColor: "#eee",
+    borderRadius: 8,
+    marginBottom: 10,
+    width: "100%",
+    alignItems: "center",
+  },
+  
 });
